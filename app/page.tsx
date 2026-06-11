@@ -51,18 +51,18 @@ const BIN_BOTTOM = BIN_FRAME_BOTTOM - BIN_WALL_THICKNESS;
 const MAX_TIER_TOUCH_BONUS = 5000;
 
 const TIERS: TrashTier[] = [
-  { name: "Cigarette Butt", color: "#f4d8b6", radius: 12, score: 5 },
-  { name: "Candy Wrapper", color: "#fde68a", radius: 15, score: 10 },
-  { name: "Plastic Straw", color: "#fcd34d", radius: 18, score: 18 },
-  { name: "Sachet Packet", color: "#fb923c", radius: 21, score: 30 },
-  { name: "Plastic Cup", color: "#f97316", radius: 24, score: 46 },
-  { name: "Takeout Box", color: "#ef4444", radius: 28, score: 70 },
-  { name: "Foam Container", color: "#dc2626", radius: 32, score: 105 },
-  { name: "PET Bottle", color: "#ec4899", radius: 36, score: 155 },
-  { name: "Bottle Bale", color: "#a855f7", radius: 41, score: 225 },
-  { name: "Trash Bag", color: "#2563eb", radius: 47, score: 320 },
-  { name: "Compacted Bundle", color: "#0284c7", radius: 53, score: 450 },
-  { name: "Mega Waste Block", color: "#14532d", radius: 58, score: 650 },
+  { name: "タバコの吸殻", color: "#f4d8b6", radius: 12, score: 5 },
+  { name: "キャンディーの包装紙", color: "#fde68a", radius: 15, score: 10 },
+  { name: "プラスチックストロー", color: "#fcd34d", radius: 18, score: 18 },
+  { name: "小袋", color: "#fb923c", radius: 21, score: 30 },
+  { name: "プラスチックカップ", color: "#f97316", radius: 24, score: 46 },
+  { name: "テイクアウトボックス", color: "#ef4444", radius: 28, score: 70 },
+  { name: "発泡容器", color: "#dc2626", radius: 32, score: 105 },
+  { name: "ペットボトル", color: "#ec4899", radius: 36, score: 155 },
+  { name: "ボトルベール", color: "#a855f7", radius: 41, score: 225 },
+  { name: "ゴミ袋", color: "#2563eb", radius: 47, score: 320 },
+  { name: "圧縮バンドル", color: "#0284c7", radius: 53, score: 450 },
+  { name: "メガゴミブロック", color: "#14532d", radius: 58, score: 650 },
 ];
 
 function clamp(value: number, min: number, max: number): number {
@@ -463,14 +463,14 @@ export default function Home() {
         context.textBaseline = "middle";
         context.fillStyle = "#ffffff";
         context.font = "700 34px var(--font-geist-sans)";
-        context.fillText("River Polluted", WIDTH / 2, HEIGHT / 2 - 28);
+        context.fillText("川が汚染されました", WIDTH / 2, HEIGHT / 2 - 28);
         context.font = "600 16px var(--font-geist-sans)";
         context.fillText(
-          "The bin overflowed into the river.",
+          "ゴミ箱が川にあふれました。",
           WIDTH / 2,
           HEIGHT / 2 + 5,
         );
-        context.fillText("Press R or tap Restart.", WIDTH / 2, HEIGHT / 2 + 28);
+        context.fillText("Rキーを押すか、リスタートをタップしてください。", WIDTH / 2, HEIGHT / 2 + 28);
       }
 
       rafId = requestAnimationFrame(tick);
@@ -485,11 +485,10 @@ export default function Home() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 pb-4 lg:h-full lg:pb-0">
         <section className="rounded-3xl border-2 border-slate-900/10 bg-white/75 p-3 backdrop-blur sm:p-4">
           <h1 className="text-xl font-black uppercase tracking-[0.08em] sm:text-2xl">
-            Vietnam River Bin Compactor
+            ベトナム川ゴミ箱コンパクター
           </h1>
           <p className="mt-1 text-xs sm:text-sm">
-            Drop trash into the public bin. Merge identical items to compress
-            waste and keep plastic out of the river.
+            公共ゴミ箱にゴミを落とします。同じアイテムを統合してゴミを圧縮し、プラスチックが川に入るのを防ぎます。
           </p>
         </section>
 
@@ -498,7 +497,7 @@ export default function Home() {
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-2xl border-2 border-slate-800/30 bg-white/85 p-2 shadow-[0_8px_20px_rgba(15,23,42,0.08)]">
                 <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
-                  Score
+                  スコア
                 </p>
                 <p className="mt-1 text-lg font-black leading-none">{score}</p>
               </div>
@@ -507,7 +506,7 @@ export default function Home() {
                 style={{ background: activeTierMeta.color }}
               >
                 <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-700">
-                  Now
+                  今
                 </p>
                 <p className="mt-1 leading-tight">{activeTierMeta.name}</p>
               </div>
@@ -516,7 +515,7 @@ export default function Home() {
                 style={{ background: nextTierMeta.color }}
               >
                 <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-700">
-                  Next
+                  次
                 </p>
                 <p className="mt-1 leading-tight">{nextTierMeta.name}</p>
               </div>
@@ -526,7 +525,7 @@ export default function Home() {
               className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
               onClick={restart}
             >
-              Restart
+              リスタート
             </button>
           </div>
 
@@ -559,11 +558,11 @@ export default function Home() {
           <aside className="hidden flex-col gap-3 lg:flex lg:min-h-0 lg:overflow-auto">
             <div className="rounded-3xl border-2 border-slate-800/30 bg-white/85 p-4 shadow-[0_10px_28px_rgba(15,23,42,0.1)]">
               <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
-                Score
+                スコア
               </p>
               <p className="mt-1 text-3xl font-black">{score}</p>
               <p className="mt-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
-                Now Dropping
+                落下中
               </p>
               <div
                 className="mt-2 rounded-xl p-3 text-sm font-semibold"
@@ -572,7 +571,7 @@ export default function Home() {
                 {activeTierMeta.name}
               </div>
               <p className="mt-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
-                Next
+                次
               </p>
               <div
                 className="mt-2 rounded-xl p-3 text-sm font-semibold"
@@ -585,7 +584,7 @@ export default function Home() {
                 className="mt-4 w-full rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
                 onClick={restart}
               >
-                Restart
+                リスタート
               </button>
             </div>
           </aside>
@@ -593,25 +592,22 @@ export default function Home() {
 
         <details className="rounded-2xl border-2 border-slate-800/30 bg-white/85 p-3 text-sm shadow-[0_10px_28px_rgba(15,23,42,0.08)] lg:mt-auto">
           <summary className="cursor-pointer font-bold uppercase tracking-[0.1em] text-slate-600">
-            Controls and Rules
+            操作とルール
           </summary>
           <div className="mt-2 space-y-2">
-            <p>Move mouse or finger to aim, then click or tap to drop.</p>
+            <p>マウスまたは指を動かして照準を合わせ、クリックまたはタップして落とします。</p>
             <p>
-              Keyboard: Left and Right arrows to aim, Space to drop, R to
-              restart.
+              キーボード：左右の矢印キーで照準、スペースキーで落とす、Rでリスタート。
             </p>
             <p className="font-semibold text-rose-700">
-              Overflow warning: If trash stays above the red line, wind pushes
-              it into the river and the game ends.
+              オーバーフロー警告：ゴミが赤い線より上にとどまると、風がそれを川に押し入れてゲームが終了します。
             </p>
             <p className="font-semibold text-emerald-700">
-              Two Mega Waste Blocks touching each other are hauled away for a
-              major bonus.
+              2つのメガゴミブロックが互いに接触すると、大きなボーナスのために取り除かれます。
             </p>
             {gameOver ? (
               <p className="font-bold text-rose-700">
-                Game Over. Restart to try again.
+                ゲームオーバー。もう一度試すにはリスタートしてください。
               </p>
             ) : null}
           </div>
