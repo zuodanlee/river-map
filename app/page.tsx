@@ -51,18 +51,18 @@ const BIN_BOTTOM = BIN_FRAME_BOTTOM - BIN_WALL_THICKNESS;
 const MAX_TIER_TOUCH_BONUS = 5000;
 
 const TIERS: TrashTier[] = [
-  { name: "タバコの吸殻", color: "#f4d8b6", radius: 12, score: 5 },
-  { name: "キャンディーの包装紙", color: "#fde68a", radius: 15, score: 10 },
-  { name: "プラスチックストロー", color: "#fcd34d", radius: 18, score: 18 },
-  { name: "小袋", color: "#fb923c", radius: 21, score: 30 },
-  { name: "プラスチックカップ", color: "#f97316", radius: 24, score: 46 },
-  { name: "テイクアウトボックス", color: "#ef4444", radius: 28, score: 70 },
-  { name: "発泡容器", color: "#dc2626", radius: 32, score: 105 },
-  { name: "ペットボトル", color: "#ec4899", radius: 36, score: 155 },
-  { name: "ボトルベール", color: "#a855f7", radius: 41, score: 225 },
-  { name: "ゴミ袋", color: "#2563eb", radius: 47, score: 320 },
-  { name: "圧縮バンドル", color: "#0284c7", radius: 53, score: 450 },
-  { name: "メガゴミブロック", color: "#14532d", radius: 58, score: 650 },
+  { name: "タバコの吸殻", color: "#f4d8b6", radius: 18, score: 10 },
+  { name: "キャンディーの包装紙", color: "#fde68a", radius: 22, score: 18 },
+  { name: "プラスチックストロー", color: "#fcd34d", radius: 26, score: 32 },
+  { name: "小袋", color: "#fb923c", radius: 31, score: 54 },
+  { name: "プラスチックカップ", color: "#f97316", radius: 37, score: 83 },
+  { name: "テイクアウトボックス", color: "#ef4444", radius: 45, score: 126 },
+  { name: "発泡容器", color: "#dc2626", radius: 54, score: 190 },
+  { name: "ペットボトル", color: "#ec4899", radius: 64, score: 278 },
+  { name: "ボトルベール", color: "#a855f7", radius: 77, score: 406 },
+  { name: "ゴミ袋", color: "#2563eb", radius: 93, score: 576 },
+  { name: "圧縮バンドル", color: "#0284c7", radius: 111, score: 810 },
+  { name: "メガゴミブロック", color: "#14532d", radius: 134, score: 1170 },
 ];
 
 function clamp(value: number, min: number, max: number): number {
@@ -470,7 +470,11 @@ export default function Home() {
           WIDTH / 2,
           HEIGHT / 2 + 5,
         );
-        context.fillText("Rキーを押すか、リスタートをタップしてください。", WIDTH / 2, HEIGHT / 2 + 28);
+        context.fillText(
+          "Rキーを押すか、リスタートをタップしてください。",
+          WIDTH / 2,
+          HEIGHT / 2 + 28,
+        );
       }
 
       rafId = requestAnimationFrame(tick);
@@ -495,29 +499,33 @@ export default function Home() {
         <section className="grid gap-3 lg:flex-1 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="grid gap-2 lg:hidden">
             <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-2xl border-2 border-slate-800/30 bg-white/85 p-2 shadow-[0_8px_20px_rgba(15,23,42,0.08)]">
+              <div className="h-20 rounded-2xl border-2 border-slate-800/30 bg-white/85 p-2 shadow-[0_8px_20px_rgba(15,23,42,0.08)]">
                 <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
                   スコア
                 </p>
                 <p className="mt-1 text-lg font-black leading-none">{score}</p>
               </div>
               <div
-                className="rounded-2xl border-2 border-slate-800/20 p-2 text-xs font-semibold shadow-[0_8px_20px_rgba(15,23,42,0.08)]"
+                className="h-20 rounded-2xl border-2 border-slate-800/20 p-2 text-xs font-semibold shadow-[0_8px_20px_rgba(15,23,42,0.08)]"
                 style={{ background: activeTierMeta.color }}
               >
                 <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-700">
                   今
                 </p>
-                <p className="mt-1 leading-tight">{activeTierMeta.name}</p>
+                <p className="mt-1 line-clamp-2 leading-tight">
+                  {activeTierMeta.name}
+                </p>
               </div>
               <div
-                className="rounded-2xl border-2 border-slate-800/20 p-2 text-xs font-semibold shadow-[0_8px_20px_rgba(15,23,42,0.08)]"
+                className="h-20 rounded-2xl border-2 border-slate-800/20 p-2 text-xs font-semibold shadow-[0_8px_20px_rgba(15,23,42,0.08)]"
                 style={{ background: nextTierMeta.color }}
               >
                 <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-700">
                   次
                 </p>
-                <p className="mt-1 leading-tight">{nextTierMeta.name}</p>
+                <p className="mt-1 line-clamp-2 leading-tight">
+                  {nextTierMeta.name}
+                </p>
               </div>
             </div>
             <button
@@ -595,7 +603,9 @@ export default function Home() {
             操作とルール
           </summary>
           <div className="mt-2 space-y-2">
-            <p>マウスまたは指を動かして照準を合わせ、クリックまたはタップして落とします。</p>
+            <p>
+              マウスまたは指を動かして照準を合わせ、クリックまたはタップして落とします。
+            </p>
             <p>
               キーボード：左右の矢印キーで照準、スペースキーで落とす、Rでリスタート。
             </p>
