@@ -49,7 +49,7 @@ const BIN_RIGHT = BIN_FRAME_RIGHT - BIN_WALL_THICKNESS;
 const BIN_TOP = BIN_FRAME_TOP + BIN_WALL_THICKNESS;
 const BIN_BOTTOM = BIN_FRAME_BOTTOM - BIN_WALL_THICKNESS;
 const MAX_TIER_TOUCH_BONUS = 5000;
-const CONTACT_SOLVER_PASSES = 3;
+const CONTACT_SOLVER_PASSES = 5;
 const CONTACT_RESTITUTION = 0.08;
 const CONTACT_FRICTION = 0;
 const CONTACT_PERCENT = 0.94;
@@ -97,17 +97,13 @@ export default function Home() {
 
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [activeTier, setActiveTier] = useState(initialActiveTier);
   const [nextTier, setNextTier] = useState(initialNextTier);
-
-  const activeTierMeta = useMemo(() => TIERS[activeTier], [activeTier]);
   const nextTierMeta = useMemo(() => TIERS[nextTier], [nextTier]);
 
   const syncHud = useCallback(() => {
     const state = worldRef.current;
     setScore(state.score);
     setGameOver(state.gameOver);
-    setActiveTier(state.activeTier);
     setNextTier(state.nextTier);
   }, []);
 
@@ -473,6 +469,38 @@ export default function Home() {
           }
         }
 
+        for (const piece of state.pieces) {
+          const minX = BIN_LEFT + piece.radius;
+          const maxX = BIN_RIGHT - piece.radius;
+          const minY = BIN_TOP + piece.radius;
+          const maxY = BIN_BOTTOM - piece.radius;
+
+          if (piece.x < minX) {
+            piece.x = minX;
+            if (piece.vx < 0) {
+              piece.vx = 0;
+            }
+          }
+          if (piece.x > maxX) {
+            piece.x = maxX;
+            if (piece.vx > 0) {
+              piece.vx = 0;
+            }
+          }
+          if (piece.y < minY) {
+            piece.y = minY;
+            if (piece.vy < 0) {
+              piece.vy = 0;
+            }
+          }
+          if (piece.y > maxY) {
+            piece.y = maxY;
+            if (piece.vy > 0) {
+              piece.vy = 0;
+            }
+          }
+        }
+
         const overflowing = state.pieces.some(
           (piece) => piece.y - piece.radius < OVERFLOW_Y,
         );
@@ -534,10 +562,6 @@ export default function Home() {
         BIN_LEFT + cursorTier.radius,
         BIN_RIGHT - cursorTier.radius,
       );
-      context.fillStyle = "rgba(15, 23, 42, 0.22)";
-      context.beginPath();
-      context.arc(clampedCursorX, SPAWN_TOP, cursorTier.radius, 0, Math.PI * 2);
-      context.fill();
 
       context.save();
       context.beginPath();
@@ -548,6 +572,13 @@ export default function Home() {
         BIN_BOTTOM - BIN_TOP,
       );
       context.clip();
+
+      context.strokeStyle = "rgba(15, 23, 42, 0.16)";
+      context.lineWidth = 2;
+      context.beginPath();
+      context.moveTo(clampedCursorX, SPAWN_TOP);
+      context.lineTo(clampedCursorX, BIN_BOTTOM);
+      context.stroke();
 
       for (const piece of state.pieces) {
         const tier = TIERS[piece.tier];
@@ -569,24 +600,40 @@ export default function Home() {
 
       context.restore();
 
+      context.fillStyle = cursorTier.color;
+      context.beginPath();
+      context.arc(clampedCursorX, SPAWN_TOP, cursorTier.radius, 0, Math.PI * 2);
+      context.fill();
+
+      context.strokeStyle = "rgba(15, 23, 42, 0.35)";
+      context.lineWidth = 2;
+      context.stroke();
+
+      context.fillStyle = "rgba(15, 23, 42, 0.8)";
+      context.font = "bold 11px var(--font-geist-mono)";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText(String(state.activeTier + 1), clampedCursorX, SPAWN_TOP);
+
       if (state.gameOver) {
         context.fillStyle = "rgba(15, 23, 42, 0.7)";
         context.fillRect(0, 0, WIDTH, HEIGHT);
         context.textAlign = "center";
         context.textBaseline = "middle";
         context.fillStyle = "#ffffff";
-        context.font = "700 34px var(--font-geist-sans)";
+        context.font = "700 228px var(--font-geist-sans)";
         context.fillText("川が汚染されました", WIDTH / 2, HEIGHT / 2 - 28);
-        context.font = "600 16px var(--font-geist-sans)";
+        context.font = "600 90px var(--font-geist-sans)";
         context.fillText(
           "ゴミ箱が川にあふれました。",
           WIDTH / 2,
-          HEIGHT / 2 + 5,
+          HEIGHT / 2 + 12,
         );
+        context.font = "600 84px var(--font-geist-sans)";
         context.fillText(
           "Rキーを押すか、リスタートをタップしてください。",
           WIDTH / 2,
-          HEIGHT / 2 + 28,
+          HEIGHT / 2 + 46,
         );
       }
 
@@ -611,7 +658,7 @@ export default function Home() {
 
         <section className="grid gap-3 lg:flex-1 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="grid gap-2 lg:hidden">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <div className="h-20 rounded-2xl border-2 border-slate-800/30 bg-white/85 p-2 shadow-[0_8px_20px_rgba(15,23,42,0.08)]">
                 <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
                   スコア
@@ -619,26 +666,26 @@ export default function Home() {
                 <p className="mt-1 text-lg font-black leading-none">{score}</p>
               </div>
               <div
-                className="h-20 rounded-2xl border-2 border-slate-800/20 p-2 text-xs font-semibold shadow-[0_8px_20px_rgba(15,23,42,0.08)]"
-                style={{ background: activeTierMeta.color }}
-              >
-                <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-700">
-                  今
-                </p>
-                <p className="mt-1 line-clamp-2 leading-tight">
-                  {activeTierMeta.name}
-                </p>
-              </div>
-              <div
-                className="h-20 rounded-2xl border-2 border-slate-800/20 p-2 text-xs font-semibold shadow-[0_8px_20px_rgba(15,23,42,0.08)]"
+                className="flex h-20 flex-col rounded-2xl border-2 border-slate-800/20 p-2 shadow-[0_8px_20px_rgba(15,23,42,0.08)]"
                 style={{ background: nextTierMeta.color }}
               >
                 <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-700">
                   次
                 </p>
-                <p className="mt-1 line-clamp-2 leading-tight">
-                  {nextTierMeta.name}
-                </p>
+                <div className="mt-1 flex flex-1 items-center justify-center">
+                  <div
+                    className="relative flex items-center justify-center rounded-full border-2 border-slate-900/25 shadow-[0_6px_14px_rgba(15,23,42,0.12)]"
+                    style={{
+                      background: nextTierMeta.color,
+                      width: 40,
+                      height: 40,
+                    }}
+                  >
+                    <span className="text-[11px] font-black text-slate-900">
+                      {nextTier + 1}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
             <button
@@ -656,22 +703,19 @@ export default function Home() {
               width={WIDTH}
               height={HEIGHT}
               className="mx-auto aspect-[21/32] h-auto max-h-[calc(100dvh-260px)] w-auto max-w-full touch-none rounded-2xl bg-[#f8fafc] lg:max-h-[calc(100dvh-220px)]"
-              onMouseMove={(event) =>
-                updateCursorFromClientPoint(event.clientX)
-              }
-              onMouseDown={dropPiece}
-              onTouchMove={(event) => {
-                const touch = event.touches[0];
-                if (touch) {
-                  updateCursorFromClientPoint(touch.clientX);
-                }
+              onPointerDown={(event) => {
+                updateCursorFromClientPoint(event.clientX);
+                event.currentTarget.setPointerCapture(event.pointerId);
               }}
-              onTouchStart={(event) => {
-                const touch = event.touches[0];
-                if (touch) {
-                  updateCursorFromClientPoint(touch.clientX);
-                }
+              onPointerMove={(event) => {
+                updateCursorFromClientPoint(event.clientX);
+              }}
+              onPointerUp={(event) => {
+                updateCursorFromClientPoint(event.clientX);
                 dropPiece();
+              }}
+              onPointerCancel={() => {
+                /* Keep the held piece in place if the gesture is interrupted. */
               }}
             />
           </div>
@@ -683,22 +727,24 @@ export default function Home() {
               </p>
               <p className="mt-1 text-3xl font-black">{score}</p>
               <p className="mt-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
-                落下中
-              </p>
-              <div
-                className="mt-2 rounded-xl p-3 text-sm font-semibold"
-                style={{ background: activeTierMeta.color }}
-              >
-                {activeTierMeta.name}
-              </div>
-              <p className="mt-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
                 次
               </p>
               <div
-                className="mt-2 rounded-xl p-3 text-sm font-semibold"
+                className="mt-2 flex h-24 items-center justify-center rounded-xl p-3"
                 style={{ background: nextTierMeta.color }}
               >
-                {nextTierMeta.name}
+                <div
+                  className="relative flex items-center justify-center rounded-full border-2 border-slate-900/25 shadow-[0_6px_14px_rgba(15,23,42,0.12)]"
+                  style={{
+                    background: nextTierMeta.color,
+                    width: 72,
+                    height: 72,
+                  }}
+                >
+                  <span className="text-xl font-black text-slate-900">
+                    {nextTier + 1}
+                  </span>
+                </div>
               </div>
               <button
                 type="button"
@@ -717,7 +763,7 @@ export default function Home() {
           </summary>
           <div className="mt-2 space-y-2">
             <p>
-              マウスまたは指を動かして照準を合わせ、クリックまたはタップして落とします。
+              マウスまたは指を動かして照準を合わせ、押したまま狙って離すと落とします。
             </p>
             <p>
               キーボード：左右の矢印キーで照準、スペースキーで落とす、Rでリスタート。
