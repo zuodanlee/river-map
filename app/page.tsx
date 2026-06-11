@@ -49,6 +49,11 @@ const BIN_RIGHT = BIN_FRAME_RIGHT - BIN_WALL_THICKNESS;
 const BIN_TOP = BIN_FRAME_TOP + BIN_WALL_THICKNESS;
 const BIN_BOTTOM = BIN_FRAME_BOTTOM - BIN_WALL_THICKNESS;
 const MAX_TIER_TOUCH_BONUS = 5000;
+const CONTACT_SOLVER_PASSES = 3;
+const CONTACT_RESTITUTION = 0.08;
+const CONTACT_FRICTION = 0;
+const CONTACT_PERCENT = 0.94;
+const CONTACT_SLOP = 0.02;
 
 const TIERS: TrashTier[] = [
   { name: "タバコの吸殻", color: "#f4d8b6", radius: 18, score: 10 },
@@ -268,11 +273,18 @@ export default function Home() {
             const nx = dx / dist;
             const ny = dy / dist;
             const overlap = minDist - dist;
+            const aMass = a.radius * a.radius;
+            const bMass = b.radius * b.radius;
+            const massSum = aMass + bMass;
+            const aShare = bMass / massSum;
+            const bShare = aMass / massSum;
+            const correction =
+              Math.max(overlap - CONTACT_SLOP, 0) * CONTACT_PERCENT;
 
-            a.x -= nx * overlap * 0.5;
-            a.y -= ny * overlap * 0.5;
-            b.x += nx * overlap * 0.5;
-            b.y += ny * overlap * 0.5;
+            a.x -= nx * correction * aShare;
+            a.y -= ny * correction * aShare;
+            b.x += nx * correction * bShare;
+            b.y += ny * correction * bShare;
 
             if (
               a.tier === b.tier &&
@@ -321,15 +333,30 @@ export default function Home() {
               continue;
             }
 
-            const restitution = 0.24;
-            const impulse = (-(1 + restitution) * velAlongNormal) / 2;
+            const invMassSum = 1 / aMass + 1 / bMass;
+            const impulse =
+              (-(1 + CONTACT_RESTITUTION) * velAlongNormal) / invMassSum;
             const ix = impulse * nx;
             const iy = impulse * ny;
 
-            a.vx -= ix;
-            a.vy -= iy;
-            b.vx += ix;
-            b.vy += iy;
+            a.vx -= ix / aMass;
+            a.vy -= iy / aMass;
+            b.vx += ix / bMass;
+            b.vy += iy / bMass;
+
+            const tangentX = rvx - velAlongNormal * nx;
+            const tangentY = rvy - velAlongNormal * ny;
+            const tangentLengthSq = tangentX * tangentX + tangentY * tangentY;
+
+            if (tangentLengthSq > 0.000001) {
+              const tangentLength = Math.sqrt(tangentLengthSq);
+              const frictionScale = CONTACT_FRICTION / tangentLength;
+
+              a.vx += tangentX * frictionScale * aShare;
+              a.vy += tangentY * frictionScale * aShare;
+              b.vx -= tangentX * frictionScale * bShare;
+              b.vy -= tangentY * frictionScale * bShare;
+            }
           }
         }
 
@@ -358,6 +385,92 @@ export default function Home() {
           );
           state.pieces.push(...toAdd);
           syncHud();
+        }
+
+        for (let pass = 0; pass < CONTACT_SOLVER_PASSES; pass += 1) {
+          for (const piece of state.pieces) {
+            if (piece.x - piece.radius < BIN_LEFT) {
+              piece.x = BIN_LEFT + piece.radius;
+              piece.vx = Math.max(piece.vx, 0) * 0.12;
+            }
+            if (piece.x + piece.radius > BIN_RIGHT) {
+              piece.x = BIN_RIGHT - piece.radius;
+              piece.vx = Math.min(piece.vx, 0) * 0.12;
+            }
+            if (piece.y - piece.radius < BIN_TOP) {
+              piece.y = BIN_TOP + piece.radius;
+              piece.vy = Math.max(piece.vy, 0) * 0.12;
+            }
+            if (piece.y + piece.radius > BIN_BOTTOM) {
+              piece.y = BIN_BOTTOM - piece.radius;
+              piece.vy = Math.min(piece.vy, 0) * 0.12;
+            }
+          }
+
+          for (let i = 0; i < state.pieces.length; i += 1) {
+            const a = state.pieces[i];
+            for (let j = i + 1; j < state.pieces.length; j += 1) {
+              const b = state.pieces[j];
+              const dx = b.x - a.x;
+              const dy = b.y - a.y;
+              const minDist = a.radius + b.radius;
+              const distSq = dx * dx + dy * dy;
+
+              if (distSq >= minDist * minDist) {
+                continue;
+              }
+
+              const dist = Math.sqrt(distSq) || 0.0001;
+              const nx = dx / dist;
+              const ny = dy / dist;
+              const overlap = minDist - dist;
+              const aMass = a.radius * a.radius;
+              const bMass = b.radius * b.radius;
+              const massSum = aMass + bMass;
+              const aShare = bMass / massSum;
+              const bShare = aMass / massSum;
+              const correction =
+                Math.max(overlap - CONTACT_SLOP, 0) * CONTACT_PERCENT;
+
+              a.x -= nx * correction * aShare;
+              a.y -= ny * correction * aShare;
+              b.x += nx * correction * bShare;
+              b.y += ny * correction * bShare;
+
+              const rvx = b.vx - a.vx;
+              const rvy = b.vy - a.vy;
+              const velAlongNormal = rvx * nx + rvy * ny;
+
+              if (velAlongNormal > 0) {
+                continue;
+              }
+
+              const invMassSum = 1 / aMass + 1 / bMass;
+              const impulse =
+                (-(1 + CONTACT_RESTITUTION) * velAlongNormal) / invMassSum;
+              const ix = impulse * nx;
+              const iy = impulse * ny;
+
+              a.vx -= ix / aMass;
+              a.vy -= iy / aMass;
+              b.vx += ix / bMass;
+              b.vy += iy / bMass;
+
+              const tangentX = rvx - velAlongNormal * nx;
+              const tangentY = rvy - velAlongNormal * ny;
+              const tangentLengthSq = tangentX * tangentX + tangentY * tangentY;
+
+              if (tangentLengthSq > 0.000001) {
+                const tangentLength = Math.sqrt(tangentLengthSq);
+                const frictionScale = CONTACT_FRICTION / tangentLength;
+
+                a.vx += tangentX * frictionScale * aShare;
+                a.vy += tangentY * frictionScale * aShare;
+                b.vx -= tangentX * frictionScale * bShare;
+                b.vy -= tangentY * frictionScale * bShare;
+              }
+            }
+          }
         }
 
         const overflowing = state.pieces.some(
